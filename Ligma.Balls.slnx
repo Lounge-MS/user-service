@@ -1,6 +1,0 @@
-﻿<Solution>
-    <Folder Name="/src/" />
-    <Folder Name="/tests/">
-        <Project Path="tests\Balls.Tests.csproj" Type="Classic C#" />
-    </Folder>
-</Solution>

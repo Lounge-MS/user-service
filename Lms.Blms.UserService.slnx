@@ -1,0 +1,10 @@
+﻿<Solution>
+    <Folder Name="/src/">
+        <Project Path="src/DomainUserService/DomainUserService.csproj" />
+        <Project Path="src/GrpcUserService/GrpcUserService.csproj" />
+        <Project Path="src/InfrastructureUserService/InfrastructureUserService.csproj" />
+    </Folder>
+    <Folder Name="/tests/">
+        <Project Path="UserService.tests\UserService.Tests.csproj" />
+    </Folder>
+</Solution>

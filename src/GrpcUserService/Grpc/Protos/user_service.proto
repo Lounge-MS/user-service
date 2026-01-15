@@ -1,0 +1,187 @@
+syntax = "proto3";
+
+package userservice;
+option csharp_namespace = "GrpcUserService.Grpc.Protos";
+
+import "google/protobuf/timestamp.proto";
+
+service UserService {
+	rpc CreateUser(CreateUserRequest) returns (UserResponse);
+	rpc DeleteUser(DeleteUserRequest) returns (UserResponse);
+	rpc GetUser(GetUserRequest) returns (UserResponse);
+	rpc UpdateUser(UpdateUserRequest) returns (UserResponse);
+	rpc UpdateUserRole(UpdateUserRoleRequest) returns (UserResponse);
+	rpc BlockUser(BlockUserRequest) returns (UserResponse);
+	rpc UnblockUser(UnblockUserRequest) returns (UserResponse);
+	rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+
+	rpc GetUserPoints(GetUserPointsRequest) returns (PointsResponse);
+	rpc AddPoints(AddPointsRequest) returns (PointsResponse);
+	rpc SpendPoints(SpendPointsRequest) returns (SpendPointsResponse);
+	rpc CompensatePoints(CompensatePointsRequest) returns (CompensatePointsResponse);
+	rpc GetPointsHistory(GetPointsHistoryRequest) returns (PointsHistoryResponse);
+}
+
+enum UserRole {
+	USER_ROLE_UNSPECIFIED = 0;
+	USER_ROLE_GUEST = 1;
+	USER_ROLE_MANAGER = 2;
+	USER_ROLE_CASHIER = 3;
+	USER_ROLE_HOOKAHMASTER = 4;
+	USER_ROLE_STOCKPERSON = 5;
+	USER_ROLE_ADMINISTRATOR = 6;
+	USER_ROLE_CLEANING = 7;
+}
+
+enum PointsTransactionType {
+	POINTS_TRANSACTION_TYPE_UNSPECIFIED = 0;
+	POINTS_TRANSACTION_TYPE_ADD = 1;
+	POINTS_TRANSACTION_TYPE_SPEND = 2;
+	POINTS_TRANSACTION_TYPE_COMPENSATE = 3;
+	POINTS_TRANSACTION_TYPE_EXPIRE = 4;
+}
+
+message User {
+	string id = 1;
+	string username = 2;
+	string phone_number = 3;
+	string password_hash = 4;
+	google.protobuf.Timestamp registered_at = 5;
+	bool is_blocked = 6;
+	int32 loyalty_points = 7;
+	UserRole role = 8;
+}
+
+message PointsHistoryEntry {
+	string id = 1;
+	string user_id = 2;
+	PointsTransactionType type = 3;
+	int32 amount = 4;
+	optional string description = 5;
+	optional string reference_id = 6;
+	google.protobuf.Timestamp created_at = 7;
+}
+
+message Error {
+	string code = 1;
+	string message = 2;
+	map<string, string> details = 3;
+}
+
+message CreateUserRequest {
+	string id = 1;
+	string username = 2;
+	string password = 3;
+	UserRole role = 4;
+}
+
+message GetUserRequest {
+	string user_id = 1;
+}
+
+message DeleteUserRequest {
+	string user_id = 1;
+}
+
+message UpdateUserRequest {
+	string user_id = 1;
+	optional string username = 2;
+	optional string phone_number = 3;
+	optional string password = 4;
+}
+
+message UpdateUserRoleRequest {
+	string user_id = 1;
+	UserRole role = 2;
+}
+
+message BlockUserRequest {
+	string user_id = 1;
+}
+
+message UnblockUserRequest {
+	string user_id = 1;
+}
+
+message ListUsersRequest {
+	string query = 1;
+	int32 page = 2;
+	int32 page_size = 3;
+}
+
+message UserResponse {
+	bool success = 1;
+	User user = 2;
+	Error error = 3;
+}
+
+message ListUsersResponse {
+	bool success = 1;
+	repeated User users = 2;
+	int32 total_count = 3;
+	int32 page = 4;
+	int32 page_size = 5;
+	Error error = 6;
+}
+
+message GetUserPointsRequest {
+	string user_id = 1;
+}
+
+message AddPointsRequest {
+	string user_id = 1;
+	int32 amount = 2;
+	optional string description = 3;
+	optional string reference_id = 4;
+}
+
+message SpendPointsRequest {
+	string user_id = 1;
+	int32 amount = 2;
+	optional string description = 3;
+	optional string reference_id = 4;
+}
+
+message CompensatePointsRequest {
+	string user_id = 1;
+	int32 amount = 2;
+	string original_transaction_id = 3;
+}
+
+message GetPointsHistoryRequest {
+	string user_id = 1;
+	int32 page = 2;
+	int32 page_size = 3;
+}
+
+message PointsResponse {
+	bool success = 1;
+	string user_id = 2;
+	int32 points = 3;
+	Error error = 4;
+}
+
+message SpendPointsResponse {
+	bool success = 1;
+	string user_id = 2;
+	int32 new_balance = 3;
+	optional string error_message = 4;
+	Error error = 5;
+}
+
+message CompensatePointsResponse {
+	bool success = 1;
+	string user_id = 2;
+	int32 new_balance = 3;
+	Error error = 4;
+}
+
+message PointsHistoryResponse {
+	bool success = 1;
+	string user_id = 2;
+	repeated PointsHistoryEntry transactions = 3;
+	int32 total_count = 4;
+	int32 page = 5;
+	int32 page_size = 6;
+	Error error = 7;
+}
