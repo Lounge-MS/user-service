@@ -1,6 +1,5 @@
 ﻿using DomainUserService.Dto;
 using GrpcUserService.Grpc.Protos;
-using PointsTransactionType = DomainUserService.Dto.PointsTransactionType;
 
 namespace GrpcUserService.Grpc.Mappers;
 
@@ -86,7 +85,7 @@ public static class UserMapper
         return protoUser;
     }
 
-    public static PointsHistoryEntry ToProtoPointsHistoryEntry(PointsHistoryDto dto)
+    public static PointsHistoryEntry ToProtoPointsHistoryEntry(DomainUserService.Dto.PointsHistoryDto dto)
     {
         var entry = new PointsHistoryEntry
         {
@@ -99,10 +98,10 @@ public static class UserMapper
 
         entry.Type = dto.Type switch
         {
-            PointsTransactionType.Add => GrpcUserService.Grpc.Protos.PointsTransactionType.Add,
-            PointsTransactionType.Spend => GrpcUserService.Grpc.Protos.PointsTransactionType.Spend,
-            PointsTransactionType.Compensate => GrpcUserService.Grpc.Protos.PointsTransactionType.Compensate,
-            PointsTransactionType.Expire => GrpcUserService.Grpc.Protos.PointsTransactionType.Expire,
+            DomainUserService.Dto.PointsTransactionType.Add => GrpcUserService.Grpc.Protos.PointsTransactionType.Add,
+            DomainUserService.Dto.PointsTransactionType.Spend => GrpcUserService.Grpc.Protos.PointsTransactionType.Spend,
+            DomainUserService.Dto.PointsTransactionType.Compensate => GrpcUserService.Grpc.Protos.PointsTransactionType.Compensate,
+            DomainUserService.Dto.PointsTransactionType.Expire => GrpcUserService.Grpc.Protos.PointsTransactionType.Expire,
             _ => GrpcUserService.Grpc.Protos.PointsTransactionType.Unspecified,
         };
 

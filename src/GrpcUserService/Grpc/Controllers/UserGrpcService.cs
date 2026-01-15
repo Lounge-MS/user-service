@@ -10,13 +10,13 @@ namespace GrpcUserService.Grpc.Controllers;
 public class UserGrpcService : global::GrpcUserService.Grpc.Protos.UserService.UserServiceBase
 {
     private readonly ILogger<UserGrpcService> _logger;
-    private readonly DomainUserService.Domain.Services.UserService _userService;
+    private readonly IUserService _userService;
     private readonly IPointsService _pointsService;
     private readonly IEventPublisher _eventPublisher;
 
     public UserGrpcService(
         ILogger<UserGrpcService> logger,
-        DomainUserService.Domain.Services.UserService userService,
+        IUserService userService,
         IPointsService pointsService,
         IEventPublisher eventPublisher)
     {

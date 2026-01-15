@@ -10,6 +10,9 @@ WORKDIR /app
 
 COPY --from=build /app/publish .
 
+# Копирование конфигурационных файлов
+COPY src/GrpcUserService/appsettings*.json ./
+
 EXPOSE 5000
 EXPOSE 5001
 

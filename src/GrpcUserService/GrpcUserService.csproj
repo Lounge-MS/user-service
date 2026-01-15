@@ -13,16 +13,21 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\DomainUserService\DomainUserService.csproj" />
+		<ProjectReference Include="..\InfrastructureUserService\InfrastructureUserService.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <PackageReference Include="BCrypt.Net-Next" />
 	  <PackageReference Include="Google.Protobuf" />
 	  <PackageReference Include="Grpc.AspNetCore" />
+	  <PackageReference Include="Grpc.Core" />
 	  <PackageReference Include="Grpc.Tools">
 	    <PrivateAssets>all</PrivateAssets>
 	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	  </PackageReference>
+	  <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel.Core" />
+	  <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+	  <PackageReference Include="Microsoft.Extensions.Options" />
 	</ItemGroup>
 
 </Project>
