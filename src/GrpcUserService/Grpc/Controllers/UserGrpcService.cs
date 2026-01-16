@@ -372,6 +372,9 @@ public class UserGrpcService : global::GrpcUserService.Grpc.Protos.UserService.U
                 userId,
                 context.CancellationToken);
 
+            await _eventPublisher.PublishUserDeletedEvent(
+                request.UserId);
+
             return new UserResponse
             {
                 Success = true,
@@ -616,6 +619,11 @@ public class UserGrpcService : global::GrpcUserService.Grpc.Protos.UserService.U
                 request.ReferenceId,
                 context.CancellationToken);
 
+            await _eventPublisher.PublishPointsAddedEvent(
+                request.UserId,
+                request.Amount,
+                request.ReferenceId);
+
             return new PointsResponse
             {
                 Success = true,
@@ -701,6 +709,14 @@ public class UserGrpcService : global::GrpcUserService.Grpc.Protos.UserService.U
                 request.Amount,
                 request.OriginalTransactionId,
                 context.CancellationToken);
+
+            if (result.Success)
+            {
+                await _eventPublisher.PublishPointsCompensatedEvent(
+                    request.UserId,
+                    request.Amount,
+                    request.OriginalTransactionId);
+            }
 
             return new CompensatePointsResponse
             {

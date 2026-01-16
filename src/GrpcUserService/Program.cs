@@ -1,12 +1,10 @@
-﻿using DomainUserService.Interfaces.IServices;
-using GrpcUserService.Grpc;
-using GrpcUserService.Grpc.Extensions;
+﻿using GrpcUserService.Grpc.Extensions;
 using InfrastructureUserService.Infrastructure.Extensions;
+using KafkaUserService.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -26,7 +24,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddGrpcServices();
 
-builder.Services.AddScoped<IEventPublisher, EventPublisherStub>();
+builder.Services.AddKafkaEventPublisher(builder.Configuration);
 
 IConfigurationSection kestrelSection = builder.Configuration.GetSection("Kestrel");
 if (kestrelSection.Exists())

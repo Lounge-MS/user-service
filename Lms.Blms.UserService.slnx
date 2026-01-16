@@ -3,6 +3,7 @@
         <Project Path="src/DomainUserService/DomainUserService.csproj" />
         <Project Path="src/GrpcUserService/GrpcUserService.csproj" />
         <Project Path="src/InfrastructureUserService/InfrastructureUserService.csproj" />
+        <Project Path="src/KafkaUserService/KafkaUserService.csproj" />
     </Folder>
     <Folder Name="/tests/">
         <Project Path="UserService.tests\UserService.Tests.csproj" />

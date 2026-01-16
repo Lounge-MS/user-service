@@ -23,8 +23,8 @@ public class UserRepository : IUserRepository, IAsyncDisposable
         await EnsureConnectionOpenAsync(cancellationToken);
 
         const string sql = @"
-            INSERT INTO users (Id, Username, PhoneNumber, Points, CreatedAt, UpdatedAt)
-            VALUES (@Id, @Username, @PhoneNumber, @Points, @CreatedAt, @UpdatedAt)";
+            INSERT INTO users (Id, Username, PhoneNumber, PasswordHash, RegisteredAt, IsBlocked, LoyaltyPoints, Role)
+            VALUES (@Id, @Username, @PhoneNumber, @PasswordHash, @RegisteredAt, @IsBlocked, @LoyaltyPoints, @Role)";
 
         using var cmd = new NpgsqlCommand(sql, _connection);
         cmd.Parameters.AddWithValue("@Id", user.Id);
@@ -34,7 +34,7 @@ public class UserRepository : IUserRepository, IAsyncDisposable
         cmd.Parameters.AddWithValue("@RegisteredAt", user.RegisteredAt);
         cmd.Parameters.AddWithValue("@IsBlocked", user.IsBlocked);
         cmd.Parameters.AddWithValue("@LoyaltyPoints", user.LoyaltyPoints);
-        cmd.Parameters.AddWithValue("@Role", user.Role);
+        cmd.Parameters.AddWithValue("@Role", (int)user.Role);
 
         await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
@@ -44,7 +44,7 @@ public class UserRepository : IUserRepository, IAsyncDisposable
         await EnsureConnectionOpenAsync(cancellationToken);
 
         const string sql = @"
-            SELECT Id, Username, PhoneNumber, Points, CreatedAt, UpdatedAt
+            SELECT Id, Username, PhoneNumber, PasswordHash, RegisteredAt, IsBlocked, LoyaltyPoints, Role
             FROM users
             WHERE Id = @Id";
 
@@ -76,9 +76,11 @@ public class UserRepository : IUserRepository, IAsyncDisposable
         const string sql = @"
             UPDATE users 
             SET Username = @Username, 
-                PhoneNumber = @PhoneNumber, 
-                Points = @Points,
-                UpdatedAt = @UpdatedAt
+                PhoneNumber = @PhoneNumber,
+                PasswordHash = @PasswordHash,
+                IsBlocked = @IsBlocked,
+                LoyaltyPoints = @LoyaltyPoints,
+                Role = @Role
             WHERE Id = @Id";
 
         using var cmd = new NpgsqlCommand(sql, _connection);
@@ -86,10 +88,9 @@ public class UserRepository : IUserRepository, IAsyncDisposable
         cmd.Parameters.AddWithValue("@Username", user.Username);
         cmd.Parameters.AddWithValue("@PhoneNumber", user.PhoneNumber);
         cmd.Parameters.AddWithValue("@PasswordHash", user.PasswordHash);
-        cmd.Parameters.AddWithValue("@RegisteredAt", user.RegisteredAt);
         cmd.Parameters.AddWithValue("@IsBlocked", user.IsBlocked);
         cmd.Parameters.AddWithValue("@LoyaltyPoints", user.LoyaltyPoints);
-        cmd.Parameters.AddWithValue("@Role", user.Role);
+        cmd.Parameters.AddWithValue("@Role", (int)user.Role);
 
         await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
@@ -117,31 +118,49 @@ public class UserRepository : IUserRepository, IAsyncDisposable
 
         await EnsureConnectionOpenAsync(cancellationToken);
 
-        string whereClause = string.Empty;
-        var parameters = new List<NpgsqlParameter>();
+        int totalCount;
+        const string countSqlWithoutFilter = "SELECT COUNT(*) FROM users";
+        const string countSqlWithFilter =
+            "SELECT COUNT(*) FROM users WHERE Username ILIKE @Query OR PhoneNumber ILIKE @Query";
 
         if (!string.IsNullOrWhiteSpace(query))
         {
-            whereClause = " WHERE Username ILIKE @Query OR PhoneNumber ILIKE @Query";
-            parameters.Add(new NpgsqlParameter("@Query", $"%{query.Trim()}%"));
+            using var countCmd = new NpgsqlCommand(countSqlWithFilter, _connection);
+            countCmd.Parameters.AddWithValue("@Query", $"%{query.Trim()}%");
+            object? countResult = await countCmd.ExecuteScalarAsync(cancellationToken);
+            totalCount = Convert.ToInt32(countResult);
+        }
+        else
+        {
+            using var countCmd = new NpgsqlCommand(countSqlWithoutFilter, _connection);
+            object? countResult = await countCmd.ExecuteScalarAsync(cancellationToken);
+            totalCount = Convert.ToInt32(countResult);
         }
 
-        string countSql = $"SELECT COUNT(*) FROM users {whereClause}";
-        int totalCount = await ExecuteScalarAsync(countSql, parameters, cancellationToken);
-
-        string sql = $@"
-            SELECT Id, Username, PhoneNumber, Points, CreatedAt, UpdatedAt
+        const string sqlWithoutFilter = @"
+            SELECT Id, Username, PhoneNumber, PasswordHash, RegisteredAt, IsBlocked, LoyaltyPoints, Role
             FROM users
-            {whereClause}
             ORDER BY Username
             LIMIT @PageSize OFFSET @Offset";
 
-        parameters.Add(new NpgsqlParameter("@PageSize", pageSize));
-        parameters.Add(new NpgsqlParameter("@Offset", (page - 1) * pageSize));
+        const string sqlWithFilter = @"
+            SELECT Id, Username, PhoneNumber, PasswordHash, RegisteredAt, IsBlocked, LoyaltyPoints, Role
+            FROM users
+            WHERE Username ILIKE @Query OR PhoneNumber ILIKE @Query
+            ORDER BY Username
+            LIMIT @PageSize OFFSET @Offset";
 
         var users = new List<User>();
+        string sql = string.IsNullOrWhiteSpace(query) ? sqlWithoutFilter : sqlWithFilter;
         using var cmd = new NpgsqlCommand(sql, _connection);
-        cmd.Parameters.AddRange(parameters.ToArray());
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            cmd.Parameters.AddWithValue("@Query", $"%{query.Trim()}%");
+        }
+
+        cmd.Parameters.AddWithValue("@PageSize", pageSize);
+        cmd.Parameters.AddWithValue("@Offset", (page - 1) * pageSize);
 
         using NpgsqlDataReader reader = await cmd.ExecuteReaderAsync(cancellationToken);
 
@@ -164,24 +183,6 @@ public class UserRepository : IUserRepository, IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await _connection.DisposeAsync();
-    }
-
-    private async Task<int> ExecuteScalarAsync(
-        string sql,
-        List<NpgsqlParameter> parameters,
-        CancellationToken cancellationToken)
-    {
-        // CA2100: Проверьте, принимает ли строка запроса, переданная в
-        // "NpgsqlCommand.NpgsqlCommand(string? cmdText, NpgsqlConnection? connection)" в
-        // "ExecuteScalarAsync", вводимые пользователем сведения.
-        // хз как пофиксить пока что
-#pragma warning disable CA2100
-        using var cmd = new NpgsqlCommand(sql, _connection);
-#pragma warning restore CA2100
-        cmd.Parameters.AddRange(parameters.ToArray());
-
-        object? result = await cmd.ExecuteScalarAsync(cancellationToken);
-        return Convert.ToInt32(result);
     }
 
     private async Task EnsureConnectionOpenAsync(CancellationToken cancellationToken)
