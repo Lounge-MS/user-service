@@ -22,14 +22,16 @@ public sealed class KafkaEventPublisher : IEventPublisher, IDisposable
         _logger = logger;
         _options = options.Value;
 
+        Acks acks = ParseAcks(_options.Acks);
+
         var producerConfig = new ProducerConfig
         {
             BootstrapServers = _options.BootstrapServers,
-            Acks = Acks.All,
-            EnableIdempotence = true,
-            MaxInFlight = 5,
-            RetryBackoffMs = 100,
-            MessageSendMaxRetries = 3,
+            Acks = acks,
+            EnableIdempotence = _options.EnableIdempotence,
+            MaxInFlight = _options.MaxInFlight,
+            RetryBackoffMs = _options.RetryBackoffMs,
+            MessageSendMaxRetries = _options.MessageSendMaxRetries,
         };
 
         _producer = new ProducerBuilder<string, string>(producerConfig)
@@ -297,5 +299,16 @@ public sealed class KafkaEventPublisher : IEventPublisher, IDisposable
     {
         _producer?.Flush(TimeSpan.FromSeconds(10));
         _producer?.Dispose();
+    }
+
+    private static Acks ParseAcks(string acks)
+    {
+        return acks.ToLowerInvariant() switch
+        {
+            "0" or "none" => Acks.None,
+            "1" or "leader" => Acks.Leader,
+            "all" or "-1" => Acks.All,
+            _ => Acks.All,
+        };
     }
 }

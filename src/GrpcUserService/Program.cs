@@ -44,13 +44,6 @@ else
             {
                 listenOptions.Protocols = HttpProtocols.Http2;
             });
-
-        options.ListenAnyIP(
-            5001,
-            listenOptions =>
-            {
-                listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
-            });
     });
 }
 

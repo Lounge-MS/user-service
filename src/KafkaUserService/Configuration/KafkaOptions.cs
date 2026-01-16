@@ -15,4 +15,14 @@ public sealed class KafkaOptions
     public required string PointsAddedTopic { get; init; }
 
     public required string PointsCompensatedTopic { get; init; }
+
+    public string Acks { get; init; } = "all";
+
+    public bool EnableIdempotence { get; init; } = true;
+
+    public int MaxInFlight { get; init; } = 5;
+
+    public int RetryBackoffMs { get; init; } = 100;
+
+    public int MessageSendMaxRetries { get; init; } = 3;
 }
