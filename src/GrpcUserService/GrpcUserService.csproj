@@ -7,6 +7,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+    <ItemGroup>
+        <None Include="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+
 	<ItemGroup>
 		<Protobuf Include="Grpc\Protos\user_service.proto" GrpcServices="Server" />
 	</ItemGroup>
