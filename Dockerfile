@@ -10,7 +10,7 @@ WORKDIR /app
 
 COPY --from=build /app/publish .
 
-# Копирование конфигурационных файлов
+
 COPY src/GrpcUserService/appsettings*.json ./
 
 ENTRYPOINT ["dotnet", "GrpcUserService.dll"]
