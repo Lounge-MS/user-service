@@ -3,7 +3,7 @@
 namespace DomainUserService.Dto;
 
 public record CreateUserDto(
-    Guid Id,
+    string Id,
     string Username,
     string PasswordHash,
     UserRole Role);

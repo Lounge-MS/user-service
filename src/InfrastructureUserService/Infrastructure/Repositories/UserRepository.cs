@@ -67,7 +67,7 @@ public class UserRepository : IUserRepository, IAsyncDisposable
         if (await reader.ReadAsync(cancellationToken))
         {
             return new User(
-                reader.GetGuid(0),
+                reader.GetString(0),
                 reader.GetString(1),
                 reader.GetString(2),
                 reader.GetString(3),
@@ -178,7 +178,7 @@ public class UserRepository : IUserRepository, IAsyncDisposable
         while (await reader.ReadAsync(cancellationToken))
         {
             users.Add(new User(
-                reader.GetGuid(0),
+                reader.GetString(0),
                 reader.GetString(1),
                 reader.GetString(2),
                 reader.GetString(3),

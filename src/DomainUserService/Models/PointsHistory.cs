@@ -3,18 +3,18 @@
 namespace DomainUserService.Models;
 
 public sealed class PointsHistory(
-    Guid id,
-    Guid userId,
-    Guid orderId,
+    string id,
+    string userId,
+    string orderId,
     int points,
     DateTime createdAt,
     PointsTransactionType type)
 {
-    public Guid Id { get; set; } = id;
+    public string Id { get; set; } = id;
 
-    public Guid UserId { get; set; } = userId;
+    public string UserId { get; set; } = userId;
 
-    public Guid OrderId { get; set; } = orderId;
+    public string OrderId { get; set; } = orderId;
 
     public int Points { get; set; } = points;
 

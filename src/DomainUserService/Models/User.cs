@@ -1,7 +1,7 @@
 ﻿namespace DomainUserService.Models;
 
 public sealed class User(
-    Guid id,
+    string id,
     string username,
     string phoneNumber,
     string passwordHash,
@@ -10,7 +10,7 @@ public sealed class User(
     int loyaltyPoints,
     UserRole role)
 {
-    public Guid Id { get; set; } = id;
+    public string Id { get; set; } = id;
 
     public string Username { get; set; } = username;
 

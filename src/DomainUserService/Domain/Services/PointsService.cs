@@ -42,9 +42,9 @@ public sealed class PointsService(
         Guid orderId = TryParseGuid(referenceId);
 
         var history = new PointsHistory(
-            id: Guid.NewGuid(),
+            id: Guid.NewGuid().ToString(),
             userId: user.Id,
-            orderId: orderId,
+            orderId: orderId.ToString(),
             points: amount,
             createdAt: DateTime.UtcNow,
             type: PointsTransactionType.Add);
@@ -83,9 +83,9 @@ public sealed class PointsService(
         Guid orderId = TryParseGuid(referenceId);
 
         var history = new PointsHistory(
-            id: Guid.NewGuid(),
+            id: Guid.NewGuid().ToString(),
             userId: user.Id,
-            orderId: orderId,
+            orderId: orderId.ToString(),
             points: -amount,
             createdAt: DateTime.UtcNow,
             type: PointsTransactionType.Spend);
@@ -120,9 +120,9 @@ public sealed class PointsService(
         Guid orderId = TryParseGuid(originalTransactionId);
 
         var history = new PointsHistory(
-            id: Guid.NewGuid(),
+            id: Guid.NewGuid().ToString(),
             userId: user.Id,
-            orderId: orderId,
+            orderId: orderId.ToString(),
             points: amount,
             createdAt: DateTime.UtcNow,
             type: PointsTransactionType.Compensate);

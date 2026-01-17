@@ -7,10 +7,10 @@ public interface IPointsHistoryRepository
     Task AddAsync(PointsHistory history, CancellationToken cancellationToken);
 
     Task<List<PointsHistory>> GetByUserAsync(
-        Guid userId,
+        string userId,
         int page,
         int pageSize,
         CancellationToken cancellationToken);
 
-    Task<int> GetCountByUserAsync(Guid userId, CancellationToken cancellationToken);
+    Task<int> GetCountByUserAsync(string userId, CancellationToken cancellationToken);
 }

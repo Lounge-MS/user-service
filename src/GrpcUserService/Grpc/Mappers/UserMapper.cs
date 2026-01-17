@@ -38,18 +38,8 @@ public static class UserMapper
 
     public static CreateUserDto ToCreateUserDto(CreateUserRequest request)
     {
-        Guid userId;
-        if (!string.IsNullOrEmpty(request.Id) && Guid.TryParse(request.Id, out Guid parsedId))
-        {
-            userId = parsedId;
-        }
-        else
-        {
-            userId = Guid.NewGuid();
-        }
-
         return new CreateUserDto(
-            Id: userId,
+            Id: request.Id,
             Username: request.Username,
             PasswordHash: BCrypt.Net.BCrypt.HashPassword(request.Password),
             Role: ToDomainRole(request.Role));
@@ -58,7 +48,7 @@ public static class UserMapper
     public static UserDto ToUserDto(User protoUser)
     {
         return new UserDto(
-            Id: Guid.Parse(protoUser.Id),
+            Id: protoUser.Id,
             Username: protoUser.Username,
             PasswordHash: protoUser.PasswordHash,
             RegisteredAt: protoUser.RegisteredAt.ToDateTime(),
@@ -88,10 +78,10 @@ public static class UserMapper
     {
         var entry = new PointsHistoryEntry
         {
-            Id = dto.Id.ToString(),
-            UserId = dto.UserId.ToString(),
+            Id = dto.Id,
+            UserId = dto.UserId,
             Amount = Math.Abs(dto.Points),
-            ReferenceId = dto.OrderId != Guid.Empty ? dto.OrderId.ToString() : null,
+            ReferenceId = dto.OrderId,
             CreatedAt = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(dto.CreatedAt),
         };
 

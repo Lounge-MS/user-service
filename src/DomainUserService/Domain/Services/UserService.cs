@@ -107,7 +107,7 @@ public sealed class UserService(
         return ToDto(user);
     }
 
-    public async Task<(List<UserDto> Users, int TotalCount)> ListUsersAsync(
+    public async Task<ListUsersDto> ListUsersAsync(
         string query,
         int page,
         int pageSize,
@@ -119,7 +119,7 @@ public sealed class UserService(
             .Select(ToDto)
             .ToList();
 
-        return (dtos, totalCount);
+        return new ListUsersDto(dtos, totalCount);
     }
 
     private static UserDto ToDto(User user)

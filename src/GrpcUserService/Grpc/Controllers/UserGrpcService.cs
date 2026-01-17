@@ -62,7 +62,7 @@ public class UserGrpcService : UserService.UserServiceBase
 
     public override async Task<UserResponse> UpdateUser(UpdateUserRequest request, ServerCallContext context)
     {
-        Guid userId = ParseOrThrowGuid(request.UserId);
+        string userId = ParseOrThrowGuid(request.UserId);
 
         UserDto existingUser = await _userService.GetUserAsync(
             request.Username,
@@ -139,7 +139,7 @@ public class UserGrpcService : UserService.UserServiceBase
 
     public override async Task<ListUsersResponse> ListUsers(ListUsersRequest request, ServerCallContext context)
     {
-        (List<UserDto> users, int totalCount) = await _userService.ListUsersAsync(
+        ListUsersDto listusers = await _userService.ListUsersAsync(
             request.Query,
             request.Page,
             request.PageSize,
@@ -147,22 +147,22 @@ public class UserGrpcService : UserService.UserServiceBase
 
         var response = new ListUsersResponse
         {
-            TotalCount = totalCount,
+            TotalCount = listusers.TotalCount,
             Page = request.Page,
             PageSize = request.PageSize,
         };
 
-        response.Users.AddRange(users.Select(UserMapper.ToProtoUser));
+        response.Users.AddRange(listusers.Users.Select(UserMapper.ToProtoUser));
 
         return response;
     }
 
     public override async Task<PointsResponse> GetUserPoints(GetUserPointsRequest request, ServerCallContext context)
     {
-        Guid userId = ParseOrThrowGuid(request.UserId);
+        string userId = ParseOrThrowGuid(request.UserId);
 
         int points = await _pointsService.GetUserPointsAsync(
-            request,
+            request.UserId,
             context.CancellationToken);
 
         return new PointsResponse
@@ -174,7 +174,7 @@ public class UserGrpcService : UserService.UserServiceBase
 
     public override async Task<SpendPointsResponse> SpendPoints(SpendPointsRequest request, ServerCallContext context)
     {
-        Guid userId = ParseOrThrowGuid(request.UserId);
+        string userId = ParseOrThrowGuid(request.UserId);
 
         (bool Success, int NewBalance, string? Error) result = await _pointsService.SpendPointsAsync(
             userId,
@@ -201,7 +201,7 @@ public class UserGrpcService : UserService.UserServiceBase
 
     public override async Task<PointsResponse> AddPoints(AddPointsRequest request, ServerCallContext context)
     {
-        Guid userId = ParseOrThrowGuid(request.UserId);
+        string userId = ParseOrThrowGuid(request.UserId);
 
         if (request.Amount <= 0)
         {
@@ -231,7 +231,7 @@ public class UserGrpcService : UserService.UserServiceBase
         CompensatePointsRequest request,
         ServerCallContext context)
     {
-        Guid userId = ParseOrThrowGuid(request.UserId);
+        string userId = ParseOrThrowGuid(request.UserId);
 
         if (request.Amount <= 0)
         {
@@ -263,7 +263,7 @@ public class UserGrpcService : UserService.UserServiceBase
         GetPointsHistoryRequest request,
         ServerCallContext context)
     {
-        Guid userId = ParseOrThrowGuid(request.UserId);
+        string userId = ParseOrThrowGuid(request.UserId);
 
         int page = request.Page > 0 ? request.Page : 1;
         int pageSize = request.PageSize > 0 ? request.PageSize : 10;
@@ -287,13 +287,8 @@ public class UserGrpcService : UserService.UserServiceBase
         return response;
     }
 
-    private Guid ParseOrThrowGuid(string guid)
+    private string ParseOrThrowGuid(string guid)
     {
-        if (!Guid.TryParse(guid, out Guid userId))
-        {
-            throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid id"));
-        }
-
-        return userId;
+        return guid;
     }
 }

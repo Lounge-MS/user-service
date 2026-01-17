@@ -19,5 +19,5 @@ public interface IUserService
 
     Task<UserDto> UnblockUserAsync(string username, CancellationToken cancellationToken);
 
-    Task<(List<UserDto> Users, int TotalCount)> ListUsersAsync(string query, int page, int pageSize, CancellationToken cancellationToken);
+    Task<ListUsersDto> ListUsersAsync(string query, int page, int pageSize, CancellationToken cancellationToken);
 }

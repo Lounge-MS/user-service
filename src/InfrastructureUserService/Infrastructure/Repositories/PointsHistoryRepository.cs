@@ -39,7 +39,7 @@ public class PointsHistoryRepository : IPointsHistoryRepository, IAsyncDisposabl
     }
 
     public async Task<List<PointsHistory>> GetByUserAsync(
-        Guid userId,
+        string userId,
         int page,
         int pageSize,
         CancellationToken cancellationToken)
@@ -67,9 +67,9 @@ public class PointsHistoryRepository : IPointsHistoryRepository, IAsyncDisposabl
         while (await reader.ReadAsync(cancellationToken))
         {
             histories.Add(new PointsHistory(
-                reader.GetGuid(0),
-                reader.GetGuid(1),
-                reader.GetGuid(2),
+                reader.GetString(0),
+                reader.GetString(1),
+                reader.GetString(2),
                 reader.GetInt32(3),
                 reader.GetDateTime(4),
                 (PointsTransactionType)reader.GetInt32(5)));
@@ -78,7 +78,7 @@ public class PointsHistoryRepository : IPointsHistoryRepository, IAsyncDisposabl
         return histories;
     }
 
-    public async Task<int> GetCountByUserAsync(Guid userId, CancellationToken cancellationToken)
+    public async Task<int> GetCountByUserAsync(string userId, CancellationToken cancellationToken)
     {
         await EnsureConnectionOpenAsync(cancellationToken);
 

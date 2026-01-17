@@ -1,9 +1,9 @@
 ﻿namespace DomainUserService.Dto;
 
 public record PointsHistoryDto(
-    Guid Id,
-    Guid UserId,
-    Guid OrderId,
+    string Id,
+    string UserId,
+    string OrderId,
     int Points,
     DateTime CreatedAt,
     PointsTransactionType Type);
