@@ -1,5 +1,6 @@
 using FluentMigrator;
 using FluentMigrator.Postgres;
+using System.Data;
 
 namespace InfrastructureUserService.Infrastructure.Migrations;
 
@@ -10,8 +11,7 @@ public class InitialMigration : Migration
     {
         Create.Table("users")
             .WithColumn("id").AsGuid().PrimaryKey()
-            .WithColumn("username").AsString(100).NotNullable()
-            .WithColumn("phone_number").AsString(20).NotNullable()
+            .WithColumn("username").AsString(100).Unique().NotNullable()
             .WithColumn("password_hash").AsString(255).NotNullable()
             .WithColumn("registered_at").AsDateTime().NotNullable()
             .WithColumn("is_blocked").AsBoolean().NotNullable().WithDefaultValue(false)
@@ -21,17 +21,6 @@ public class InitialMigration : Migration
             .WithColumn("updated_at").AsDateTime().NotNullable().WithDefault(SystemMethods.CurrentDateTime);
 
         Execute.Sql("CREATE EXTENSION IF NOT EXISTS pg_trgm;");
-
-        Create.Index("idx_users_username")
-            .OnTable("users")
-            .OnColumn("username")
-            .Ascending()
-            .WithOptions();
-
-        Create.Index("idx_users_phone")
-            .OnTable("users")
-            .OnColumn("phone_number")
-            .Ascending();
 
         Create.Index("idx_users_is_blocked")
             .OnTable("users")
@@ -68,13 +57,13 @@ public class InitialMigration : Migration
         Create.Table("points_history")
             .WithColumn("id").AsGuid().PrimaryKey()
             .WithColumn("user_id").AsGuid().NotNullable()
-            .ForeignKey("fk_points_history_user_id", "users", "id")
-            .OnDelete(System.Data.Rule.Cascade)
+                .ForeignKey("fk_points_history_user_id", "users", "id")
+                .OnDelete(Rule.Cascade)
             .WithColumn("order_id").AsGuid().Nullable()
             .WithColumn("points").AsInt32().NotNullable()
             .WithColumn("type").AsInt32().NotNullable()
             .WithColumn("created_at").AsDateTime().NotNullable()
-            .WithDefault(SystemMethods.CurrentDateTime);
+                .WithDefault(SystemMethods.CurrentDateTime);
 
         Create.Index("idx_points_history_user_id")
             .OnTable("points_history")
@@ -111,17 +100,11 @@ public class InitialMigration : Migration
                 (gen_random_uuid(), 'DEFAULT_USER_ROLE', '0', 'Роль по умолчанию для новых пользователей (0 = GUEST)')
         ");
 
-        // Seed admin user (password: admin123)
-        // BCrypt hash for 'admin123': $2a$11$K3g.../...
-        Execute.Sql(@"
-            INSERT INTO users (id, username, phone_number, password_hash, registered_at, is_blocked, loyalty_points, role)
-            VALUES
-                (gen_random_uuid(), 'admin', '+70000000000', '$2a$11$rBXKQq8Y9YuJZ5qK5u.ZPOqL3VjK1VxUxM6k8rZqJ5Yx8G3d5q8Ky', NOW(), false, 0, 6)
-        ");
-
         Create.Table("user_audit_logs")
             .WithColumn("id").AsGuid().PrimaryKey()
             .WithColumn("user_id").AsGuid().NotNullable()
+                .ForeignKey("fk_user_audit_logs_user_id", "users", "id")
+                .OnDelete(Rule.Cascade)
             .ForeignKey("fk_audit_logs_user_id", "users", "id")
             .WithColumn("action").AsString(100).NotNullable()
             .WithColumn("details").AsString().Nullable()
@@ -145,7 +128,6 @@ public class InitialMigration : Migration
             SELECT 
                 u.id,
                 u.username,
-                u.phone_number,
                 u.registered_at,
                 u.is_blocked,
                 u.loyalty_points,
@@ -155,7 +137,7 @@ public class InitialMigration : Migration
                 COALESCE(SUM(CASE WHEN ph.type = 1 THEN ph.points ELSE 0 END), 0) as TotalDeducted
             FROM users u
             LEFT JOIN points_history ph ON u.id = ph.user_id
-            GROUP BY u.id, u.username, u.phone_number, u.registered_at, u.is_blocked, u.loyalty_points, u.role;
+            GROUP BY u.id, u.username, u.registered_at, u.is_blocked, u.loyalty_points, u.role;
         ");
     }
 
@@ -178,7 +160,6 @@ public class InitialMigration : Migration
         Delete.Index("idx_users_registered_at").OnTable("users");
         Delete.Index("idx_users_role").OnTable("users");
         Delete.Index("idx_users_is_blocked").OnTable("users");
-        Delete.Index("idx_users_phone").OnTable("users");
         Delete.Index("idx_users_username").OnTable("users");
 
         Delete.Table("users");

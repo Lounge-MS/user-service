@@ -1,4 +1,4 @@
-﻿# https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/style-rules/language-rules
+# https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/style-rules/language-rules
 
 [*.{cs,vb}]
 tab_width = 4

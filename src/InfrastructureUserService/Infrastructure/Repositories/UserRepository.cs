@@ -1,4 +1,5 @@
-﻿using DomainUserService.Interfaces.IRepositories;
+﻿using DomainUserService.Exceptions;
+using DomainUserService.Interfaces.IRepositories;
 using DomainUserService.Models;
 using Npgsql;
 using System;
@@ -36,20 +37,30 @@ public class UserRepository : IUserRepository, IAsyncDisposable
         cmd.Parameters.AddWithValue("@LoyaltyPoints", user.LoyaltyPoints);
         cmd.Parameters.AddWithValue("@Role", (int)user.Role);
 
-        await cmd.ExecuteNonQueryAsync(cancellationToken);
+        try
+        {
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
+        }
+        catch (PostgresException ex)
+        {
+            if (ex.SqlState is "23505")
+            {
+                throw new CollisionException();
+            }
+        }
     }
 
-    public async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken)
     {
         await EnsureConnectionOpenAsync(cancellationToken);
 
         const string sql = @"
-            SELECT id, username, phone_number, password_hash, registered_at, is_blocked, loyalty_points, role
+            SELECT username, username, phone_number, password_hash, registered_at, is_blocked, loyalty_points, role
             FROM users
-            WHERE id = @Id";
+            WHERE username = @Username";
 
         using var cmd = new NpgsqlCommand(sql, _connection);
-        cmd.Parameters.AddWithValue("@Id", id);
+        cmd.Parameters.AddWithValue("@Username", username);
 
         using NpgsqlDataReader reader = await cmd.ExecuteReaderAsync(cancellationToken);
 
@@ -95,14 +106,14 @@ public class UserRepository : IUserRepository, IAsyncDisposable
         await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
 
-    public async Task DeleteAsync(Guid id, CancellationToken cancellationToken)
+    public async Task DeleteAsync(string username, CancellationToken cancellationToken)
     {
         await EnsureConnectionOpenAsync(cancellationToken);
 
-        const string sql = "DELETE FROM users WHERE id = @Id";
+        const string sql = "DELETE FROM users WHERE username = @Username";
 
         using var cmd = new NpgsqlCommand(sql, _connection);
-        cmd.Parameters.AddWithValue("@Id", id);
+        cmd.Parameters.AddWithValue("@Username", username);
 
         await cmd.ExecuteNonQueryAsync(cancellationToken);
     }

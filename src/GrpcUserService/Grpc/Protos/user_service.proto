@@ -44,12 +44,11 @@ enum PointsTransactionType {
 message User {
 	string id = 1;
 	string username = 2;
-	string phone_number = 3;
-	string password_hash = 4;
-	google.protobuf.Timestamp registered_at = 5;
-	bool is_blocked = 6;
-	int32 loyalty_points = 7;
-	UserRole role = 8;
+	string password_hash = 3;
+	google.protobuf.Timestamp registered_at = 4;
+	bool is_blocked = 5;
+	int32 loyalty_points = 6;
+	UserRole role = 7;
 }
 
 message PointsHistoryEntry {
@@ -62,12 +61,6 @@ message PointsHistoryEntry {
 	google.protobuf.Timestamp created_at = 7;
 }
 
-message Error {
-	string code = 1;
-	string message = 2;
-	map<string, string> details = 3;
-}
-
 message CreateUserRequest {
 	string id = 1;
 	string username = 2;
@@ -76,31 +69,30 @@ message CreateUserRequest {
 }
 
 message GetUserRequest {
-	string user_id = 1;
+	string username = 1;
 }
 
 message DeleteUserRequest {
-	string user_id = 1;
+	string username = 1;
 }
 
 message UpdateUserRequest {
 	string user_id = 1;
 	optional string username = 2;
-	optional string phone_number = 3;
-	optional string password = 4;
+	optional string password = 3;
 }
 
 message UpdateUserRoleRequest {
-	string user_id = 1;
+	string username = 1;
 	UserRole role = 2;
 }
 
 message BlockUserRequest {
-	string user_id = 1;
+	string username = 1;
 }
 
 message UnblockUserRequest {
-	string user_id = 1;
+	string username = 1;
 }
 
 message ListUsersRequest {
@@ -110,18 +102,14 @@ message ListUsersRequest {
 }
 
 message UserResponse {
-	bool success = 1;
-	User user = 2;
-	Error error = 3;
+	User user = 1;
 }
 
 message ListUsersResponse {
-	bool success = 1;
-	repeated User users = 2;
-	int32 total_count = 3;
-	int32 page = 4;
-	int32 page_size = 5;
-	Error error = 6;
+	repeated User users = 1;
+	int32 total_count = 2;
+	int32 page = 3;
+	int32 page_size = 4;
 }
 
 message GetUserPointsRequest {
@@ -155,33 +143,24 @@ message GetPointsHistoryRequest {
 }
 
 message PointsResponse {
-	bool success = 1;
-	string user_id = 2;
-	int32 points = 3;
-	Error error = 4;
+	string user_id = 1;
+	int32 points = 2;
 }
 
 message SpendPointsResponse {
-	bool success = 1;
-	string user_id = 2;
-	int32 new_balance = 3;
-	optional string error_message = 4;
-	Error error = 5;
+	string user_id = 1;
+	int32 new_balance = 2;
 }
 
 message CompensatePointsResponse {
-	bool success = 1;
-	string user_id = 2;
-	int32 new_balance = 3;
-	Error error = 4;
+	string user_id = 1;
+	int32 new_balance = 2;
 }
 
 message PointsHistoryResponse {
-	bool success = 1;
-	string user_id = 2;
-	repeated PointsHistoryEntry transactions = 3;
-	int32 total_count = 4;
-	int32 page = 5;
-	int32 page_size = 6;
-	Error error = 7;
+	string user_id = 1;
+	repeated PointsHistoryEntry transactions = 2;
+	int32 total_count = 3;
+	int32 page = 4;
+	int32 page_size = 5;
 }

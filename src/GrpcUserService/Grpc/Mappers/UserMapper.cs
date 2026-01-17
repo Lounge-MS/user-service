@@ -60,7 +60,6 @@ public static class UserMapper
         return new UserDto(
             Id: Guid.Parse(protoUser.Id),
             Username: protoUser.Username,
-            PhoneNumber: protoUser.PhoneNumber,
             PasswordHash: protoUser.PasswordHash,
             RegisteredAt: protoUser.RegisteredAt.ToDateTime(),
             IsBlocked: protoUser.IsBlocked,
@@ -74,7 +73,7 @@ public static class UserMapper
         {
             Id = userDto.Id.ToString(),
             Username = userDto.Username,
-            PhoneNumber = userDto.PhoneNumber,
+            PasswordHash = userDto.PasswordHash,
             RegisteredAt = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(userDto.RegisteredAt),
             IsBlocked = userDto.IsBlocked,
             LoyaltyPoints = userDto.LoyaltyPoints,

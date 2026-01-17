@@ -1,3 +1,4 @@
+using GrpcUserService.Grpc.Interceptors;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace GrpcUserService.Grpc.Extensions;
@@ -11,9 +12,8 @@ public static class GrpcServiceCollectionExtensions
             options.EnableDetailedErrors = true;
             options.MaxReceiveMessageSize = 4 * 1024 * 1024;
             options.MaxSendMessageSize = 4 * 1024 * 1024;
+            options.Interceptors.Add<ExceptionInterceptor>();
         });
-
-        services.AddGrpc();
 
         return services;
     }

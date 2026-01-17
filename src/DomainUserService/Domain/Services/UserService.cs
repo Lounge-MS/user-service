@@ -35,31 +35,25 @@ public sealed class UserService(
         return ToDto(user);
     }
 
-    public async Task<UserDto> DeleteUserAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<UserDto> DeleteUserAsync(string username, CancellationToken cancellationToken)
     {
-        User user = await users.GetByIdAsync(id, cancellationToken)
-                   ?? throw new KeyNotFoundException($"User with id {id} not found");
+        User user = await GetUserOrThrowAsync(username, cancellationToken);
 
-        await users.DeleteAsync(id, cancellationToken);
+        await users.DeleteAsync(username, cancellationToken);
 
         return ToDto(user);
     }
 
-    public async Task<UserDto> GetUserAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<UserDto> GetUserAsync(string username, CancellationToken cancellationToken)
     {
-        User user = await users.GetByIdAsync(id, cancellationToken)
-                   ?? throw new KeyNotFoundException($"User with id {id} not found");
-
+        User user = await GetUserOrThrowAsync(username, cancellationToken);
         return ToDto(user);
     }
 
     public async Task<UserDto> UpdateUserAsync(UserDto dto, CancellationToken cancellationToken)
     {
-        User user = await users.GetByIdAsync(dto.Id, cancellationToken)
-                   ?? throw new KeyNotFoundException($"User with id {dto.Id} not found");
-
+        User user = await GetUserOrThrowAsync(dto.Username, cancellationToken);
         user.Username = dto.Username;
-        user.PhoneNumber = dto.PhoneNumber;
 
         if (!string.IsNullOrWhiteSpace(dto.PasswordHash))
         {
@@ -75,10 +69,9 @@ public sealed class UserService(
         return ToDto(user);
     }
 
-    public async Task<UserDto> UpdateUserRoleAsync(Guid id, UserRole role, CancellationToken cancellationToken)
+    public async Task<UserDto> UpdateUserRoleAsync(string username, UserRole role, CancellationToken cancellationToken)
     {
-        User user = await users.GetByIdAsync(id, cancellationToken)
-                   ?? throw new KeyNotFoundException($"User with id {id} not found");
+        User user = await GetUserOrThrowAsync(username, cancellationToken);
 
         if (!Enum.IsDefined(role))
         {
@@ -92,10 +85,9 @@ public sealed class UserService(
         return ToDto(user);
     }
 
-    public async Task<UserDto> BlockUserAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<UserDto> BlockUserAsync(string username, CancellationToken cancellationToken)
     {
-        User user = await users.GetByIdAsync(id, cancellationToken)
-                   ?? throw new KeyNotFoundException($"User with id {id} not found");
+        User user = await GetUserOrThrowAsync(username, cancellationToken);
 
         user.IsBlocked = true;
 
@@ -104,10 +96,9 @@ public sealed class UserService(
         return ToDto(user);
     }
 
-    public async Task<UserDto> UnblockUserAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<UserDto> UnblockUserAsync(string username, CancellationToken cancellationToken)
     {
-        User user = await users.GetByIdAsync(id, cancellationToken)
-                   ?? throw new KeyNotFoundException($"User with id {id} not found");
+        User user = await GetUserOrThrowAsync(username, cancellationToken);
 
         user.IsBlocked = false;
 
@@ -136,11 +127,16 @@ public sealed class UserService(
         return new UserDto(
             Id: user.Id,
             Username: user.Username,
-            PhoneNumber: user.PhoneNumber,
             PasswordHash: user.PasswordHash,
             RegisteredAt: user.RegisteredAt,
             IsBlocked: user.IsBlocked,
             LoyaltyPoints: user.LoyaltyPoints,
             Role: user.Role);
+    }
+
+    private async Task<User> GetUserOrThrowAsync(string username, CancellationToken cancellationToken)
+    {
+        return await users.GetByUsernameAsync(username, cancellationToken)
+            ?? throw new KeyNotFoundException($"User with username {username} not found");
     }
 }

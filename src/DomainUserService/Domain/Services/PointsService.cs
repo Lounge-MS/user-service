@@ -17,16 +17,14 @@ public sealed class PointsService(
 
     private readonly ILogger<PointsService> _logger = logger;
 
-    public async Task<int> GetUserPointsAsync(Guid userId, CancellationToken cancellationToken)
+    public async Task<int> GetUserPointsAsync(string username, CancellationToken cancellationToken)
     {
-        User user = await _users.GetByIdAsync(userId, cancellationToken)
-                   ?? throw new KeyNotFoundException($"User with id {userId} not found");
-
+        User user = await GetUserOrThrowAsync(username, cancellationToken);
         return user.LoyaltyPoints;
     }
 
     public async Task<int> AddPointsAsync(
-        Guid userId,
+        string username,
         int amount,
         string? description,
         string? referenceId,
@@ -37,9 +35,7 @@ public sealed class PointsService(
             throw new ArgumentOutOfRangeException(nameof(amount), "Amount must be positive");
         }
 
-        User user = await _users.GetByIdAsync(userId, cancellationToken)
-                   ?? throw new KeyNotFoundException($"User with id {userId} not found");
-
+        User user = await GetUserOrThrowAsync(username, cancellationToken);
         user.LoyaltyPoints += amount;
         await _users.UpdateAsync(user, cancellationToken);
 
@@ -47,7 +43,7 @@ public sealed class PointsService(
 
         var history = new PointsHistory(
             id: Guid.NewGuid(),
-            userId: userId,
+            userId: user.Id,
             orderId: orderId,
             points: amount,
             createdAt: DateTime.UtcNow,
@@ -58,14 +54,14 @@ public sealed class PointsService(
         _logger.LogInformation(
             "Added {Amount} points for user {UserId}, new balance {Balance}",
             amount,
-            userId,
+            user.Id,
             user.LoyaltyPoints);
 
         return user.LoyaltyPoints;
     }
 
     public async Task<(bool Success, int NewBalance, string? Error)> SpendPointsAsync(
-        Guid userId,
+        string username,
         int amount,
         string? referenceId,
         CancellationToken cancellationToken)
@@ -75,12 +71,7 @@ public sealed class PointsService(
             return (false, 0, "Amount must be positive");
         }
 
-        User? user = await _users.GetByIdAsync(userId, cancellationToken);
-        if (user is null)
-        {
-            return (false, 0, "User not found");
-        }
-
+        User user = await GetUserOrThrowAsync(username, cancellationToken);
         if (user.LoyaltyPoints < amount)
         {
             return (false, user.LoyaltyPoints, "Insufficient points");
@@ -93,7 +84,7 @@ public sealed class PointsService(
 
         var history = new PointsHistory(
             id: Guid.NewGuid(),
-            userId: userId,
+            userId: user.Id,
             orderId: orderId,
             points: -amount,
             createdAt: DateTime.UtcNow,
@@ -104,14 +95,14 @@ public sealed class PointsService(
         _logger.LogInformation(
             "Spent {Amount} points for user {UserId}, new balance {Balance}",
             amount,
-            userId,
+            user.Id,
             user.LoyaltyPoints);
 
         return (true, user.LoyaltyPoints, null);
     }
 
     public async Task<(bool Success, int NewBalance)> CompensatePointsAsync(
-        Guid userId,
+        string username,
         int amount,
         string originalTransactionId,
         CancellationToken cancellationToken)
@@ -121,8 +112,7 @@ public sealed class PointsService(
             throw new ArgumentOutOfRangeException(nameof(amount), "Amount must be positive");
         }
 
-        User user = await _users.GetByIdAsync(userId, cancellationToken)
-                   ?? throw new KeyNotFoundException($"User with id {userId} not found");
+        User user = await GetUserOrThrowAsync(username, cancellationToken);
 
         user.LoyaltyPoints += amount;
         await _users.UpdateAsync(user, cancellationToken);
@@ -131,7 +121,7 @@ public sealed class PointsService(
 
         var history = new PointsHistory(
             id: Guid.NewGuid(),
-            userId: userId,
+            userId: user.Id,
             orderId: orderId,
             points: amount,
             createdAt: DateTime.UtcNow,
@@ -142,7 +132,7 @@ public sealed class PointsService(
         _logger.LogInformation(
             "Compensated {Amount} points for user {UserId}, new balance {Balance} (original transaction {OriginalTransactionId})",
             amount,
-            userId,
+            user.Id,
             user.LoyaltyPoints,
             originalTransactionId);
 
@@ -150,13 +140,14 @@ public sealed class PointsService(
     }
 
     public async Task<(List<PointsHistoryDto> History, int TotalCount)> GetPointsHistoryAsync(
-        Guid userId,
+        string username,
         int page,
         int pageSize,
         CancellationToken cancellationToken)
     {
-        List<PointsHistory> history = await _history.GetByUserAsync(userId, page, pageSize, cancellationToken);
-        int totalCount = await _history.GetCountByUserAsync(userId, cancellationToken);
+        User user = await GetUserOrThrowAsync(username, cancellationToken);
+        List<PointsHistory> history = await _history.GetByUserAsync(user.Id, page, pageSize, cancellationToken);
+        int totalCount = await _history.GetCountByUserAsync(user.Id, cancellationToken);
 
         var dtos = history
             .Select(h => new PointsHistoryDto(
@@ -174,5 +165,11 @@ public sealed class PointsService(
     private static Guid TryParseGuid(string? value)
     {
         return Guid.TryParse(value, out Guid guid) ? guid : Guid.Empty;
+    }
+
+    private async Task<User> GetUserOrThrowAsync(string username, CancellationToken cancellationToken)
+    {
+        return await _users.GetByUsernameAsync(username, cancellationToken)
+            ?? throw new KeyNotFoundException($"User with username {username} not found");
     }
 }
