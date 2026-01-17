@@ -1,4 +1,6 @@
+using DomainUserService.Domain.Services;
 using DomainUserService.Interfaces.IRepositories;
+using DomainUserService.Interfaces.IServices;
 using FluentMigrator.Runner;
 using InfrastructureUserService.Infrastructure.Migrations;
 using InfrastructureUserService.Infrastructure.Repositories;
@@ -19,6 +21,9 @@ public static class InfrastructureExtensions
 
         services.AddScoped<IPointsHistoryRepository>(sp =>
             new PointsHistoryRepository(configuration.GetConnectionString("DefaultConnection")));
+
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IPointsService, PointsService>();
 
         services.AddFluentMigratorCore()
             .ConfigureRunner(rb => rb

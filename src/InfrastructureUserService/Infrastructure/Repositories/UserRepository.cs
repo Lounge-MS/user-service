@@ -23,7 +23,7 @@ public class UserRepository : IUserRepository, IAsyncDisposable
         await EnsureConnectionOpenAsync(cancellationToken);
 
         const string sql = @"
-            INSERT INTO users (Id, Username, PhoneNumber, PasswordHash, RegisteredAt, IsBlocked, LoyaltyPoints, Role)
+            INSERT INTO users (id, username, phone_number, password_hash, registered_at, is_blocked, loyalty_points, role)
             VALUES (@Id, @Username, @PhoneNumber, @PasswordHash, @RegisteredAt, @IsBlocked, @LoyaltyPoints, @Role)";
 
         using var cmd = new NpgsqlCommand(sql, _connection);
@@ -44,9 +44,9 @@ public class UserRepository : IUserRepository, IAsyncDisposable
         await EnsureConnectionOpenAsync(cancellationToken);
 
         const string sql = @"
-            SELECT Id, Username, PhoneNumber, PasswordHash, RegisteredAt, IsBlocked, LoyaltyPoints, Role
+            SELECT id, username, phone_number, password_hash, registered_at, is_blocked, loyalty_points, role
             FROM users
-            WHERE Id = @Id";
+            WHERE id = @Id";
 
         using var cmd = new NpgsqlCommand(sql, _connection);
         cmd.Parameters.AddWithValue("@Id", id);
@@ -75,13 +75,13 @@ public class UserRepository : IUserRepository, IAsyncDisposable
 
         const string sql = @"
             UPDATE users 
-            SET Username = @Username, 
-                PhoneNumber = @PhoneNumber,
-                PasswordHash = @PasswordHash,
-                IsBlocked = @IsBlocked,
-                LoyaltyPoints = @LoyaltyPoints,
-                Role = @Role
-            WHERE Id = @Id";
+            SET username = @Username, 
+                phone_number = @PhoneNumber,
+                password_hash = @PasswordHash,
+                is_blocked = @IsBlocked,
+                loyalty_points = @LoyaltyPoints,
+                role = @Role
+            WHERE id = @Id";
 
         using var cmd = new NpgsqlCommand(sql, _connection);
         cmd.Parameters.AddWithValue("@Id", user.Id);
@@ -99,7 +99,7 @@ public class UserRepository : IUserRepository, IAsyncDisposable
     {
         await EnsureConnectionOpenAsync(cancellationToken);
 
-        const string sql = "DELETE FROM users WHERE Id = @Id";
+        const string sql = "DELETE FROM users WHERE id = @Id";
 
         using var cmd = new NpgsqlCommand(sql, _connection);
         cmd.Parameters.AddWithValue("@Id", id);
@@ -121,7 +121,7 @@ public class UserRepository : IUserRepository, IAsyncDisposable
         int totalCount;
         const string countSqlWithoutFilter = "SELECT COUNT(*) FROM users";
         const string countSqlWithFilter =
-            "SELECT COUNT(*) FROM users WHERE Username ILIKE @Query OR PhoneNumber ILIKE @Query";
+            "SELECT COUNT(*) FROM users WHERE username ILIKE @Query OR phone_number ILIKE @Query";
 
         if (!string.IsNullOrWhiteSpace(query))
         {
@@ -138,16 +138,16 @@ public class UserRepository : IUserRepository, IAsyncDisposable
         }
 
         const string sqlWithoutFilter = @"
-            SELECT Id, Username, PhoneNumber, PasswordHash, RegisteredAt, IsBlocked, LoyaltyPoints, Role
+            SELECT id, username, phone_number, password_hash, registered_at, is_blocked, loyalty_points, role
             FROM users
-            ORDER BY Username
+            ORDER BY username
             LIMIT @PageSize OFFSET @Offset";
 
         const string sqlWithFilter = @"
-            SELECT Id, Username, PhoneNumber, PasswordHash, RegisteredAt, IsBlocked, LoyaltyPoints, Role
+            SELECT id, username, phone_number, password_hash, registered_at, is_blocked, loyalty_points, role
             FROM users
-            WHERE Username ILIKE @Query OR PhoneNumber ILIKE @Query
-            ORDER BY Username
+            WHERE username ILIKE @Query OR phone_number ILIKE @Query
+            ORDER BY username
             LIMIT @PageSize OFFSET @Offset";
 
         var users = new List<User>();

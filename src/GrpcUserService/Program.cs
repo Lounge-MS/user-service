@@ -49,6 +49,8 @@ else
 
 WebApplication app = builder.Build();
 
+app.Services.UseInfrastructureMigrations();
+
 app.MapGrpcService<GrpcUserService.Grpc.Controllers.UserGrpcService>();
 
 app.MapGet("/", () => "User Service gRPC is running");

@@ -24,8 +24,8 @@ public class PointsHistoryRepository : IPointsHistoryRepository, IAsyncDisposabl
         await EnsureConnectionOpenAsync(cancellationToken);
 
         const string sql = @"
-            INSERT INTO points_history (Id, UserId, PointsChange, Reason, CreatedAt)
-            VALUES (@Id, @UserId, @PointsChange, @Reason, @CreatedAt)";
+            INSERT INTO points_history (id, user_id, order_id, points, type, created_at)
+            VALUES (@Id, @UserId, @OrderId, @Points, @Type, @CreatedAt)";
 
         using var cmd = new NpgsqlCommand(sql, _connection);
         cmd.Parameters.AddWithValue("@Id", history.Id);
@@ -50,10 +50,10 @@ public class PointsHistoryRepository : IPointsHistoryRepository, IAsyncDisposabl
         await EnsureConnectionOpenAsync(cancellationToken);
 
         const string sql = @"
-            SELECT Id, UserId, PointsChange, Reason, CreatedAt
+            SELECT id, user_id, order_id, points, created_at, type
             FROM points_history
-            WHERE UserId = @UserId
-            ORDER BY CreatedAt DESC
+            WHERE user_id = @UserId
+            ORDER BY created_at DESC
             LIMIT @PageSize OFFSET @Offset";
 
         using var cmd = new NpgsqlCommand(sql, _connection);
@@ -82,7 +82,7 @@ public class PointsHistoryRepository : IPointsHistoryRepository, IAsyncDisposabl
     {
         await EnsureConnectionOpenAsync(cancellationToken);
 
-        const string sql = "SELECT COUNT(*) FROM points_history WHERE UserId = @UserId";
+        const string sql = "SELECT COUNT(*) FROM points_history WHERE user_id = @UserId";
 
         using var cmd = new NpgsqlCommand(sql, _connection);
         cmd.Parameters.AddWithValue("@UserId", userId);
